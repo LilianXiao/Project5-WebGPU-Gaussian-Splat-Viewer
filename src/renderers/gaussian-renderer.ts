@@ -99,6 +99,12 @@ export default function get_renderer(
         resource: {
           buffer: camera_buffer
         }
+      },
+      {
+        binding: 1,
+        resource: {
+          buffer: settings_buffer
+        }
       }
     ]
   });

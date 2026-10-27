@@ -143,9 +143,108 @@ fn preprocess(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgr
         return;
     }
 
+    // Covariance computation before writing the splats***
+    // unpack, rotate, scale (multiply by render_settings.gaussian_scaling)
+    let opacity = 1.0 / (1.0 + exp(-b.y));
+
+    // in rotation step, requires normalization
+    let r0 = unpack2x16float(g.rot[0]);
+    let r1 = unpack2x16float(g.rot[1]);
+    // quaternion is stored as (w, x, y, z)
+    let q = normalize(vec4<f32>(r0.x, r0.y, r1.x, r1.y));
+    let w = q.x;
+    let x = q.y;
+    let y = q.z;
+    let z = q.w;
+
+    let s0 = unpack2x16float(g.scale[0]);
+    let s1 = unpack2x16float(g.scale[1]);
+    let scale = exp(vec3<f32>(s0.x, s0.y, s1.x)) * render_settings.gaussian_scaling;
+
+    // 3D covariance is RSS^TR^T
+    let R = mat3x3<f32>(
+        vec3(
+            1.0 - 2.0 * (y * y + z * z),
+            2.0 * (x * y + w * z),
+            2.0 * (x * z - w * y)
+        ),
+        vec3(
+            2.0 * (x * y - w * z),
+            1.0 - 2.0 * (x * x + z * z),
+            2.0 * (y * z + w * x)
+        ),
+        vec3(
+            2.0 * (x * z + w * y),
+            2.0 * (y * z - w * x),
+            1.0 - 2.0 * (x * x + y * y)
+        )
+    );
+
+    let S = mat3x3<f32>(
+        vec3(scale.x, 0.0, 0.0),
+        vec3(0.0, scale.y, 0.0),
+        vec3(0.0, 0.0, scale.z)
+    );
+
+    let M = R * S;
+    let cov_3d = M * transpose(M);
+
+    // 2D covariance is JWsumW^TJ^T
+    // the Jacobian is the projection's derivative
+    let t = pos_view.xyz;
+    let lim_x = 1.3 * 0.5 * camera.viewport.x / camera.focal.x;
+    let lim_y = 1.3 * 0.5 * camera.viewport.y / camera.focal.y;
+    let tx = clamp(t.x / t.z, -lim_x, lim_x) * t.z;
+    let ty = clamp(t.y / t.z, -lim_y, lim_y) * t.z;
+
+    let J = mat3x3<f32>(
+        vec3(
+            camera.focal.x / t.z, 0.0, 0.0
+        ), 
+        vec3(
+            0.0, camera.focal.y / t.z, 0.0
+        ),
+        vec3(
+            -camera.focal.x * tx / (t.z * t.z),
+            -camera.focal.y * ty / (t.z * t.z),
+            0.0
+        )
+    );
+
+    // upper left 3x3 mat
+    let W = mat3x3<f32>(
+        camera.view[0].xyz,
+        camera.view[1].xyz,
+        camera.view[2].xyz
+    );
+
+    let cov_2d = J * W * cov_3d * transpose(W) * transpose(J);
+
+    // adds 0.3 square pixels of variance in each screen direction
+    // ensures every splat gets min size ~pixel
+    let cov_a = cov_2d[0][0] + 0.3;
+    let cov_b = cov_2d[0][1];
+    let cov_c = cov_2d[1][1] + 0.3;
+
+    // do conic inverse stuff (return if determinant is 0)
+    let det = cov_a * cov_c - cov_b * cov_b;
+    if (det <= 0.0) {
+        return;
+    }
+
+    let conic = vec3<f32>(cov_c, -cov_b, cov_a) / det;
+
+    // find radius from largest eigenvalue (convert to ndc half size)
+    let mid = 0.5 * (cov_a + cov_c);
+    let lambda1 = mid + sqrt(max(0.1, mid * mid - det));
+    let lambda2 = mid - sqrt(max(0.1, mid * mid - det));
+    let radius = ceil(3.0 * sqrt(max(lambda1, lambda2)));
+
+    // now pack opacity into splat
+    splats[idx].conic_opacity[0] = pack2x16float(conic.xy);
+    splats[idx].conic_opacity[1] = pack2x16float(vec2(conic.z, opacity));
     splats[idx].pos = pack2x16float(ndc.xy);
-    // in the future use radius***
-    splats[idx].size = pack2x16float(vec2(0.01));
+    splats[idx].size = pack2x16float(vec2(radius) * 2.0 / camera.viewport);
 
     let key = atomicAdd(&sort_infos.keys_size, 1u);
     sort_indices[key] = idx;

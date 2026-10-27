@@ -3,7 +3,8 @@
 
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
-    // TODO: information passed from vertex shader to fragment shader
+    // information passed from vertex shader to fragment shader
+    @location(0) @interpolate(flat) sort_color: vec4<f32>
 };
 
 struct Splat {
@@ -38,10 +39,11 @@ fn vs_main( @builtin(vertex_index) iv: u32,
 
     var out: VertexOutput;
     out.position = vec4<f32>(center + quad[iv] * size , 0., 1.);
+    out.sort_color = vec4<f32>(size.x, size.y, 0.0, 1.0);
     return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    return vec4<f32>(1.0, 1.0, 0.0, 1.0);
+    return in.sort_color;
 }
