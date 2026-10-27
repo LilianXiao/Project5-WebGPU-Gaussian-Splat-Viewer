@@ -124,10 +124,15 @@ export default function get_renderer(
         resource: {
           buffer: splat_buffer
         }
+      },
+      {
+        binding: 2,
+        resource: {
+          buffer: pc.sh_buffer
+        }
       }
     ]
   });
-
 
   // ===============================================
   //    Create Render Pipeline and Bind Groups
@@ -145,7 +150,15 @@ export default function get_renderer(
       module: render_shader,
       entryPoint: 'fs_main',
       targets: [{
-        format: presentation_format
+        format: presentation_format,
+        blend: {
+          color: {
+            srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add'
+          }, 
+          alpha: {
+            srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add'
+          }
+        }
       }]
     },
     primitive: {
@@ -167,6 +180,12 @@ export default function get_renderer(
         binding: 1,
         resource: {
           buffer: sorter.ping_pong[0].sort_indices_buffer
+        }
+      },
+      {
+        binding: 2,
+        resource: {
+          buffer: camera_buffer
         }
       }
     ]
