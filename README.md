@@ -2,25 +2,22 @@
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) **Google Chrome 222.2** on
-  Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Lilian Xiao
+  * [LinkedIn](https://www.linkedin.com/in/lilian-xiao/), [personal website](https://lilianxiao.carrd.co/), [art website](https://lilianxvis.carrd.co/)
+* Tested on: Windows 11, Intel(R) Core(TM) Ultra 9 185H (2.50 GHz), 16.0 GB RAM, NVIDIA GeForce RTX 4070 Laptop GPU (8 GB)
+Intel(R) Arc(TM) Graphics (128 MB) (Personal Laptop)
 
 ### Live Demo
 
-[![](img/thumb.png)](http://TODO.github.io/Project4-WebGPU-Forward-Plus-and-Clustered-Deferred)
+See the live Github page [here](https://lilianxiao.github.io/Project5-WebGPU-Gaussian-Splat-Viewer/).
 
 ### Demo Video/GIF
 
-[![](img/video.mp4)](TODO)
+https://github.com/user-attachments/assets/418c49b5-0de3-41bd-891f-472ee80eef4d
 
-### (TODO: Your README)
+### OVERVIEW
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
-
-This assignment has a considerable amount of performance analysis compared
-to implementation work. Complete the implementation early to leave time!
+Gaussian splatting
 
 ### Credits
 
