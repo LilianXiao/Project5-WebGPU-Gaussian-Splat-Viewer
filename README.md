@@ -15,6 +15,10 @@ See the live Github page [here](https://lilianxiao.github.io/Project5-WebGPU-Gau
 
 https://github.com/user-attachments/assets/418c49b5-0de3-41bd-891f-472ee80eef4d
 
+https://github.com/user-attachments/assets/7db1050b-abda-46fe-8d1d-8d5e4662a2fa
+
+https://github.com/user-attachments/assets/7be14465-1239-4ac4-9a1a-da4f62f08cc9
+
 ### OVERVIEW
 
 Gaussian splatting
