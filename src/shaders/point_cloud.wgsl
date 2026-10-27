@@ -38,7 +38,6 @@ fn vs_main(
     // Each gaussian is essentially a pixel/vertex to make a basic point cloud.
     // what happens here is world -> camera space -> projection, mapping the viewing frustum
     // no need to divide by w here (ndc and pixel stuff will be for later...)
-    let pos = vec4<f32>(a.x, a.y, b.x, 1.0);
     out.position = camera.proj * camera.view * pos;
 
     return out;
