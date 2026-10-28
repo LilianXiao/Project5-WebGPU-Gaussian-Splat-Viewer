@@ -25,6 +25,8 @@ Gaussian splatting (or 3DGS) is a method of volumetric rendering for the purpose
 
 A gaussian stores data such as position, scale, opacity, color, and orientation.  Whereas a point cloud is a volume composed of points/vertices, a gaussian splat is like a cloud of these primitive volumes.  Since these gaussians are blended in real time and maintain depth information, the end result can be satisfactorily realistic.  As such, gaussian splatting is a promising and practical alternative to just traditionally rendering hard geometry.
 
+This project features a point cloud renderer that draws gaussians as points, as well as a more in-depth Gaussian renderer consisting of preprocessing, depth sorting, and indirect splat rendering.  This includes view-frustum culling, 3D covariance, 2D projection of covariance, conic and radius computation, view-dependent color from third degree spherical harmonics, and radix depth sorting.
+
 ## PERFORMANCE REVIEW
 
 The .ply scene being used is bicycle_3000.cleaned.ply, which includes 1063091 gaussian splats, with default presets (unless otherwise tested).
@@ -65,6 +67,14 @@ Preliminary expectations are that very small sizes would be quite slow, due to w
 | Mostly obscured | On | ~244.0 | ~4.10 |
 
 Slight differences are observed across the frustum culling review.  I expected there to be a larger observable difference, but the culling payoff seems to be smaller.  Culling can help alleviate work done per-gaussian splat, so it doesn't have a big effect on work done per-pixel.  Because the rasterizer will just clip an offscreen quad, the culling will save time for the covariance computation, SH coefficients, and sorting.  Additionally, I wonder if a larger scene with more splats would present a stronger difference.
+
+### Number of Gaussians
+
+<img width="603" height="371" alt="image" src="https://github.com/user-attachments/assets/1a540718-d897-4803-895b-d1ecb94cf312" />
+
+This is as expected, with ~11.4 ms frame time for the bicycle scene and ~4.2 ms for the bonsai scene.  Preprocessing in the compute shader scales with the total number of gaussians; regardless of frustum culling, one thread is for each gaussian, and loads 24 bytes of packed information.  There is a lot of covariance and SH eval that goes into each visible gaussian.  Additionally, atomic operations aren't negligible.
+
+Radix sort has to make 4 passes on the 32 bit keys, with the histogram/prefix sum passes, and it logically follows that more gaussians implies more workgroups per pass.  The biggest cost is likely due to immense overdraw the more splats overlap over each pixel.  For the bicycle scene, the buffers are probably around 4 times larger than those of the bonsai scene.
 
 ## Credits
 
