@@ -47,6 +47,8 @@ struct CameraUniforms {
 struct RenderSettings {
     gaussian_scaling: f32,
     sh_deg: f32,
+    frustum_culling: f32, // culling toggle: 1.0 is on
+    _pad: f32
 }
 
 struct Gaussian {
@@ -143,13 +145,17 @@ fn preprocess(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(num_workgr
     let pos_clip = camera.proj * pos_view;
 
     // culling business (using suggested 1.2x frustum)
-    if (pos_clip.w <= 0.0) {
+    if (pos_clip.w <= 0.0 || pos_view.z < 0.2) {
         return; // behind camera
     }
     
     let ndc = pos_clip.xyz / pos_clip.w;
-    if (any(abs(ndc.xy) > vec2(1.2)) || ndc.z < 0.0 || ndc.z > 1.0) {
-        return;
+
+    // frustum testing
+    if (render_settings.frustum_culling > 0.5) {
+        if (any(abs(ndc.xy) > vec2(1.2)) || ndc.z > 1.0) {
+            return;
+        }
     }
 
     // Covariance computation before writing the splats***

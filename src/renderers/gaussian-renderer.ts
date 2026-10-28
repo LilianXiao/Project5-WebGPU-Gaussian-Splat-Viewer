@@ -6,6 +6,7 @@ import { Renderer } from './renderer';
 
 export interface GaussianRenderer extends Renderer {
   setGaussianMultiplier: (v: number) => void;
+  setCulling: (on: boolean) => void;
 }
 
 // Utility to create GPU buffers
@@ -58,9 +59,9 @@ export default function get_renderer(
   const settings_buffer = createBuffer(
     device, 
     'render settings',
-    2 * 4,
+    4 * 4,
     GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    new Float32Array([1.0, pc.sh_deg])
+    new Float32Array([1.0, pc.sh_deg, 1.0, 0.0])
   );
 
   // ===============================================
@@ -239,6 +240,8 @@ export default function get_renderer(
     },
     camera_buffer,
     setGaussianMultiplier: (v: number) =>
-      device.queue.writeBuffer(settings_buffer, 0, new Float32Array([v]))
+      device.queue.writeBuffer(settings_buffer, 0, new Float32Array([v])),
+    setCulling: (on: boolean) =>
+      device.queue.writeBuffer(settings_buffer, 8, new Float32Array([on ? 1 : 0]))
   };
 }
