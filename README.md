@@ -47,7 +47,11 @@ There are two undeniable sources of extra cost when it comes to the Gaussian ren
 
 <img width="602" height="368" alt="image" src="https://github.com/user-attachments/assets/4be17af1-d7b4-4d89-9256-216673cd2504" />
 
+### Workgroup Size
 
+<img width="602" height="370" alt="image" src="https://github.com/user-attachments/assets/a59cfa9a-b1e5-4a5d-ac42-011ed9b2d63a" />
+
+Preliminary expectations are that very small sizes would be quite slow, due to warps having idle portions.  Though, since preprocessing is an independent thread per gaussian and no memory is shared, overall, large differences are not expected.  There is somewhat of a growing trend, but overall, a concrete conclusion on the "best" workgroup size cannot be formed.  Drops and increases between the ranges of 64 to 256 could be attributed to atomics and occupancy, since preprocessing requires many registers.
 
 ### Credits
 
