@@ -53,7 +53,20 @@ There are two undeniable sources of extra cost when it comes to the Gaussian ren
 
 Preliminary expectations are that very small sizes would be quite slow, due to warps having idle portions.  Though, since preprocessing is an independent thread per gaussian and no memory is shared, overall, large differences are not expected.  There is somewhat of a growing trend, but overall, a concrete conclusion on the "best" workgroup size cannot be formed.  Drops and increases between the ranges of 64 to 256 could be attributed to atomics and occupancy, since preprocessing requires many registers.
 
-### Credits
+### View-Frustum Culling
+
+<img width="599" height="365" alt="image" src="https://github.com/user-attachments/assets/ce492214-25fe-49d7-a341-8f7613f4e417" />
+
+| View | Culling | Avg FPS | Approximate Frame time (ms) |
+|---|---|---|---|
+| Partially visible | Off | ~139.5 | ~7.17 |
+| Partially visible | On | ~142.0 | ~7.04 |
+| Mostly obscured | Off | ~238.0 | ~4.20 |
+| Mostly obscured | On | ~244.0 | ~4.10 |
+
+Slight differences are observed across the frustum culling review.  I expected there to be a larger observable difference, but the culling payoff seems to be smaller.  Culling can help alleviate work done per-gaussian splat, so it doesn't have a big effect on work done per-pixel.  Because the rasterizer will just clip an offscreen quad, the culling will save time for the covariance computation, SH coefficients, and sorting.  Additionally, I wonder if a larger scene with more splats would present a stronger difference.
+
+## Credits
 
 - [Vite](https://vitejs.dev/)
 - [tweakpane](https://tweakpane.github.io/docs//v3/monitor-bindings/)
